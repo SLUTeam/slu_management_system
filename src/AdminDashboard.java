@@ -60,7 +60,7 @@ public class AdminDashboard extends JFrame {
         tabbedPane.addTab("Students", createStudentPanel());
         tabbedPane.addTab("Professors", new JPanel());
         tabbedPane.addTab("Courses", new JPanel());
-        tabbedPane.addTab("Departments", new JPanel());
+        tabbedPane.addTab("Departments", new DepartmentManagementPanel());
 
         homeBtn.addActionListener(e -> tabbedPane.setSelectedIndex(0));
         studentBtn.addActionListener(e -> tabbedPane.setSelectedIndex(1));
