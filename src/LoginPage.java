@@ -1,11 +1,13 @@
-package loginPage;
 import javax.swing.*;
+
+import com.mysql.cj.xdevapi.DbDoc;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 
 public class LoginPage extends JFrame {
 
-    // Components used in the login form
     private JTextField userField;
     private JPasswordField passwordField;
     private JComboBox<String> userTypeBox;
@@ -13,15 +15,14 @@ public class LoginPage extends JFrame {
     private JButton closeButton;
 
     public LoginPage() {
-        // Set basic window properties
         setTitle("LOGIN PAGE");
         setSize(700, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Create left panel (blue side)
+        // Left Panel
         JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(new Color(33, 150, 243)); // blue color
+        leftPanel.setBackground(new Color(33, 150, 243));
         leftPanel.setPreferredSize(new Dimension(250, 400));
         leftPanel.setLayout(null);
 
@@ -29,29 +30,20 @@ public class LoginPage extends JFrame {
         welcomeLabel.setForeground(Color.white);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 20));
         welcomeLabel.setBounds(50, 100, 200, 30);
-        
+
         JLabel developerLabel = new JLabel("Developed by");
         developerLabel.setBounds(50, 245, 150, 30);
         developerLabel.setForeground(Color.WHITE);
-        developerLabel.setHorizontalAlignment(SwingConstants.CENTER); // CENTER IT
 
         JLabel groupLabel = new JLabel("Group 1");
         groupLabel.setBounds(50, 265, 150, 30);
         groupLabel.setForeground(Color.WHITE);
-        groupLabel.setHorizontalAlignment(SwingConstants.CENTER); // CENTER IT
 
         leftPanel.add(developerLabel);
         leftPanel.add(groupLabel);
-
-        ImageIcon icon = new ImageIcon(getClass().getResource("/images/Avatar.jpg"));
-        Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-        JLabel imageLabel = new JLabel(new ImageIcon(img));
-        imageLabel.setBounds(85, 150, 80, 80);
-        leftPanel.add(imageLabel);
-
         leftPanel.add(welcomeLabel);
-       
-        // Create right panel (white side)
+
+        // Right Panel
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(null);
 
@@ -84,26 +76,48 @@ public class LoginPage extends JFrame {
         closeButton = new JButton("CLOSE");
         closeButton.setBounds(180, 230, 100, 30);
 
-        // Close the application when close button is clicked
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose(); // Close window
+        closeButton.addActionListener(e -> dispose());
+
+        submitButton.addActionListener(e -> {
+            String user = userField.getText();
+            String pass = new String(passwordField.getPassword());
+            String type = (String) userTypeBox.getSelectedItem();
+
+            if (user.isEmpty() || pass.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please fill all fields!");
+                return;
+            }
+
+            try (Connection conn = DBConnection.getConnection()) {
+                String query = "SELECT * FROM users WHERE username=? AND password=? AND role=?";
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, user);
+                ps.setString(2, pass);
+                ps.setString(3, type);
+
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String email = rs.getString("email");
+                    JOptionPane.showMessageDialog(null, "Login Successful!");
+
+                    if (type.equals("Admin")) {
+                        new AdminDashboard(user, email, type).setVisible(true);
+                    } else if (type.equals("Professor")) {
+                        new ProfessorDashboard(user, email, type).setVisible(true);
+                    } else if (type.equals("Student")) {
+                        new StudentDashboard(user, email, type).setVisible(true);
+                    }
+
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid username, password, or role!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage());
             }
         });
 
-        // Just print input data when submit button is clicked
-        submitButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String user = userField.getText();
-                String pass = new String(passwordField.getPassword());
-                String type = (String) userTypeBox.getSelectedItem();
-
-                JOptionPane.showMessageDialog(null,
-                        "Username: " + user + "\nPassword: " + pass + "\nType: " + type);
-            }
-        });
-
-        // Add components to right panel
         rightPanel.add(titleLabel);
         rightPanel.add(loginLabel);
         rightPanel.add(userLabel);
@@ -115,16 +129,14 @@ public class LoginPage extends JFrame {
         rightPanel.add(submitButton);
         rightPanel.add(closeButton);
 
-        // Add panels to frame
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.CENTER);
 
-        // Center the window
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
     public static void main(String[] args) {
-        new LoginPage(); // Run the login page
+        new LoginPage();
     }
 }
