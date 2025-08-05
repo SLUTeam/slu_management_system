@@ -35,7 +35,6 @@ Each section has its own panel (like `StudentPanel`, `ProfessorPanel`, etc.), an
 - **Java (Swing)** for GUI
 - **MySQL** for database
 - **Clever Cloud** (used for remote database)
-- **NetBeans IDE**
 - **MySQL Connector/J**
 
 ---
