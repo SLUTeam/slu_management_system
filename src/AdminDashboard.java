@@ -136,6 +136,7 @@ public class AdminDashboard extends JFrame {
     }
 
     
+    //Main method to start
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AdminDashboard("AdminUser", "admin@slu.edu", "Admin").setVisible(true));
