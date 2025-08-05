@@ -1,14 +1,10 @@
 # SLU Management System
 
-## 📘 Project Made by Students (For OOP Course)
-
 Hi! 👋  
-This project was created by us (a group of students) for our **Object-Oriented Software Design** course at **Saint Louis University (SLU)**.
+This project was created by us Abishek , Pooja , Takudzwa , Jyoti for our **Object-Oriented Software Design** course at **Saint Louis University (SLU)**.
 
-We built a **School Management System** using **Java Swing GUI** and connected it to a **MySQL database** (hosted on Clever Cloud).  
+We built a **SLU Management System** using **Java Swing GUI** and connected it to a **MySQL database** (hosted on Clever Cloud).  
 It includes **login pages** and **dashboards** for Admins, Professors, and Students.
-
----
 
 ##What Our System Can Do
 
@@ -28,17 +24,12 @@ Admins can do **CRUD operations** (Create, Read, Update, Delete) for:
 
 Each section has its own panel (like `StudentPanel`, `ProfessorPanel`, etc.), and we used dropdowns for related fields (like selecting a Department when adding a student).
 
----
-
 ##  Tech Stack Used
 
 - **Java (Swing)** for GUI
 - **MySQL** for database
 - **Clever Cloud** (used for remote database)
-- **NetBeans IDE**
 - **MySQL Connector/J**
-
----
 
 ##  Our Database Setup
 
