@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
-//Developed by Takudzwa Mtata
+//Developed by Takudzwa Mutata
    
    public class DepartmentPanel extends JPanel {
 	
