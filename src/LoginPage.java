@@ -3,9 +3,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
+//Developed by Takudzwa Mtata
+
 public class LoginPage extends JFrame {
 
-    private JTextField userField;
+    private static final long serialVersionUID = 1L;
+	private JTextField userField;
     private JPasswordField passwordField;
     private JComboBox<String> userTypeBox;
     private JButton submitButton;
@@ -17,7 +20,8 @@ public class LoginPage extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Left Panel
+        // Left Panel for welcome page
+        
         JPanel leftPanel = new JPanel();
         leftPanel.setBackground(new Color(33, 150, 243));
         leftPanel.setPreferredSize(new Dimension(250, 400));
@@ -32,7 +36,7 @@ public class LoginPage extends JFrame {
         developerLabel.setBounds(50, 245, 150, 30);
         developerLabel.setForeground(Color.WHITE);
 
-        JLabel groupLabel = new JLabel("Group 1");
+        JLabel groupLabel = new JLabel("SLU Team");
         groupLabel.setBounds(50, 265, 150, 30);
         groupLabel.setForeground(Color.WHITE);
 
@@ -40,7 +44,8 @@ public class LoginPage extends JFrame {
         leftPanel.add(groupLabel);
         leftPanel.add(welcomeLabel);
 
-        // Right Panel
+        // Right Panel of login page
+        
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(null);
 

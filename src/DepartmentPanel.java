@@ -3,10 +3,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+
+//Developed by Takudzwa Mtata
    
-   public class DepartmentManagementPanel extends JPanel {
+   public class DepartmentPanel extends JPanel {
 	
-	public DepartmentManagementPanel() {
+	private static final long serialVersionUID = 1L;
+
+	public DepartmentPanel() {
 		setLayout(new BorderLayout());	
 
 		String[] columns = {"Dept ID", "Name"};

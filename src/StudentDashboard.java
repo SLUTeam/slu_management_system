@@ -3,6 +3,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+//Developed by Abishek Arivudainambi
+
 public class StudentDashboard extends JFrame {
 
     private JTabbedPane tabbedPane;

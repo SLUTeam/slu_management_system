@@ -4,9 +4,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
+//Developed by Abishek Arivudainambi
+
+
 public class AdminDashboard extends JFrame {
 
-    private JTabbedPane tabbedPane;
+    private static final long serialVersionUID = 1L;
+	private JTabbedPane tabbedPane;
     private String username;
     private String email;
     private String role;
@@ -21,6 +25,8 @@ public class AdminDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        
+        //we created this left panel to maintain the tabs 
 
         JPanel leftPanel = new JPanel();
         leftPanel.setBackground(new Color(33, 150, 243));
@@ -54,13 +60,15 @@ public class AdminDashboard extends JFrame {
         leftPanel.add(courseBtn);
         leftPanel.add(deptBtn);
         leftPanel.add(logoutBtn);
+        
+        //this JTabbedPane is new to me I found this in Youtube and I used.
 
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Home", createHomePanel());
-        tabbedPane.addTab("Students", createStudentPanel());
-        tabbedPane.addTab("Professors", new JPanel());
-        tabbedPane.addTab("Courses", new JPanel());
-        tabbedPane.addTab("Departments", new DepartmentManagementPanel());
+        tabbedPane.addTab("Students", StudentPanel.createStudentPanel());
+        tabbedPane.addTab("Professors", ProfessorPanel.createProfessorPanel());
+        tabbedPane.addTab("Courses", CoursePanel.createCoursePanel());
+        tabbedPane.addTab("Departments", new DepartmentPanel());
 
         homeBtn.addActionListener(e -> tabbedPane.setSelectedIndex(0));
         studentBtn.addActionListener(e -> tabbedPane.setSelectedIndex(1));
@@ -75,6 +83,8 @@ public class AdminDashboard extends JFrame {
         add(leftPanel, BorderLayout.WEST);
         add(tabbedPane, BorderLayout.CENTER);
     }
+    
+    //We Created separate separate panels for all tabs 
 
     private JPanel createHomePanel() {
         JPanel panel = new JPanel();
@@ -100,6 +110,10 @@ public class AdminDashboard extends JFrame {
         for (JButton btn : new JButton[]{manageStudentsBtn, manageProfessorsBtn, manageCoursesBtn, manageDeptBtn}) {
             btn.setPreferredSize(btnSize);
         }
+        
+        //This panel contain logged in user details and all tabs managing buttons
+        
+       // setSelectedIndex used to manage to know which tab is active at the time
 
         manageStudentsBtn.addActionListener(e -> tabbedPane.setSelectedIndex(1));
         manageProfessorsBtn.addActionListener(e -> tabbedPane.setSelectedIndex(2));
@@ -121,117 +135,7 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
-    private JPanel createStudentPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        String[] columns = {"ID", "Name", "Email", "Department"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(model);
-        JScrollPane scrollPane = new JScrollPane(table);
-
-        JTextField nameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField deptIdField = new JTextField();
-
-        JButton addBtn = new JButton("Add");
-        JButton updateBtn = new JButton("Update");
-        JButton deleteBtn = new JButton("Delete");
-
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-        formPanel.add(new JLabel("Name:"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Email:"));
-        formPanel.add(emailField);
-        formPanel.add(new JLabel("Dept ID:"));
-        formPanel.add(deptIdField);
-        formPanel.add(addBtn);
-        formPanel.add(updateBtn);
-        formPanel.add(deleteBtn);
-
-        addBtn.addActionListener(e -> {
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("INSERT INTO students (name, email, dept_id) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, nameField.getText());
-                ps.setString(2, emailField.getText());
-                ps.setInt(3, Integer.parseInt(deptIdField.getText()));
-                ps.executeUpdate();
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    int id = rs.getInt(1);
-                    model.addRow(new Object[]{id, nameField.getText(), emailField.getText(), deptIdField.getText()});
-                }
-                nameField.setText(""); emailField.setText(""); deptIdField.setText("");
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error adding student.");
-            }
-        });
-
-        updateBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row >= 0) {
-                int id = Integer.parseInt(model.getValueAt(row, 0).toString());
-                try (Connection conn = DBConnection.getConnection();
-                     PreparedStatement ps = conn.prepareStatement("UPDATE students SET name=?, email=?, dept_id=? WHERE id=?")) {
-                    ps.setString(1, nameField.getText());
-                    ps.setString(2, emailField.getText());
-                    ps.setInt(3, Integer.parseInt(deptIdField.getText()));
-                    ps.setInt(4, id);
-                    ps.executeUpdate();
-                    model.setValueAt(nameField.getText(), row, 1);
-                    model.setValueAt(emailField.getText(), row, 2);
-                    model.setValueAt(deptIdField.getText(), row, 3);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Error updating student.");
-                }
-            }
-        });
-
-        deleteBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row >= 0) {
-                int id = Integer.parseInt(model.getValueAt(row, 0).toString());
-                try (Connection conn = DBConnection.getConnection();
-                     PreparedStatement ps = conn.prepareStatement("DELETE FROM students WHERE id=?")) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
-                    model.removeRow(row);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Error deleting student.");
-                }
-            }
-        });
-
-        table.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int row = table.getSelectedRow();
-                nameField.setText(model.getValueAt(row, 1).toString());
-                emailField.setText(model.getValueAt(row, 2).toString());
-                deptIdField.setText(model.getValueAt(row, 3).toString());
-            }
-        });
-
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT s.id, s.name, s.email, d.dept_id FROM students s JOIN departments d ON s.dept_id = d.dept_id")) {
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getInt("dept_id")
-                });
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error loading student data");
-        }
-
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(formPanel, BorderLayout.SOUTH);
-        return panel;
-    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AdminDashboard("AdminUser", "admin@slu.edu", "Admin").setVisible(true));

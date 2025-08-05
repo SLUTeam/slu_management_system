@@ -4,6 +4,8 @@ import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+//Developed by Pooja
+
 public class ProfessorPanel {
     public static JPanel createProfessorPanel() {
         JPanel panel = new JPanel(new BorderLayout());
