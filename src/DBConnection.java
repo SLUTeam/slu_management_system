@@ -1,14 +1,12 @@
 import java.sql.*;
 
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://root:ISmoyTEYiZCgjGVNkLShvJwOOERMYmVg@tramway.proxy.rlwy.net:43921/slu_management";
+	// Currently this DB connection is based on the person who is working at the moment Soon we will buy one common DB server
+    private static final String URL = "jdbc:mysql://localhost:3306/slu_management";
+    private static final String USER = "root";
+    private static final String PASSWORD = "Takudzwa13";
 
     public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("MySQL Driver not found", e);
-        }
-        return DriverManager.getConnection(URL);
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
