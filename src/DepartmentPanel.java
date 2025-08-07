@@ -4,9 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
+//Developed by Takudzwa Mutata
 public class DepartmentPanel extends JPanel {
-
-    private static final long serialVersionUID = 1L;
+	
+	private static final long serialVersionUID = 1L;
 
     public DepartmentPanel() {
         setLayout(new BorderLayout());
