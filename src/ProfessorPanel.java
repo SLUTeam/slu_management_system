@@ -33,7 +33,7 @@ public class ProfessorPanel {
         formPanel.add(updateBtn);
         formPanel.add(deleteBtn);
 
-        // Button Logic
+        // Add Button Logic
         addBtn.addActionListener(e -> {
             try (Connection conn = DBConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(
@@ -57,7 +57,8 @@ public class ProfessorPanel {
                 JOptionPane.showMessageDialog(panel, "Error adding professor.");
             }
         });
-
+        
+        // Update button Logic
         updateBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row >= 0) {
@@ -79,7 +80,8 @@ public class ProfessorPanel {
                 }
             }
         });
-
+        
+        // Delete Button logic
         deleteBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row >= 0) {
