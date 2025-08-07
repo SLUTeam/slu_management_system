@@ -6,10 +6,17 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="/Users/abisheka/Downloads/mysql-connector-j-9.4.0/mysql-connector-j-9.4.0.jar">
+	<classpathentry kind="lib" path="lib/javax.activation-1.2.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/mysql-connector-j-9.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/activation-1.1.1.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/jakarta.mail-1.6.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
