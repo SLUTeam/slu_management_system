@@ -17,7 +17,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-//Developed by Abishek Arivudainambi
+
 
 public class StudentPanel {
 
@@ -31,10 +31,13 @@ public class StudentPanel {
 		JTextField nameField = new JTextField();
 		JTextField emailField = new JTextField();
 		JTextField deptIdField = new JTextField();
-
+		//JTextField accessField = new JTextField();
+		
 		JButton addBtn = new JButton("Add");
 		JButton updateBtn = new JButton("Update");
 		JButton deleteBtn = new JButton("Delete");
+		JButton accessBtn = new JButton("Access");
+		accessBtn.setEnabled(false);  // Initially disabled
 
 		JPanel formPanel = new JPanel(new GridLayout(4, 4, 10, 10));
 		formPanel.add(new JLabel("Name:"));
@@ -43,9 +46,20 @@ public class StudentPanel {
 		formPanel.add(emailField);
 		formPanel.add(new JLabel("Dept ID:"));
 		formPanel.add(deptIdField);
-		formPanel.add(addBtn);
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(addBtn);
+		buttonPanel.add(updateBtn);
+		buttonPanel.add(deleteBtn);
+		buttonPanel.add(accessBtn);
+		formPanel.add(buttonPanel);
+		
+		
+		/*formPanel.add(addBtn);
 		formPanel.add(updateBtn);
 		formPanel.add(deleteBtn);
+		formPanel.add(accessBtn);
+	*/
 
 		addBtn.addActionListener(e -> {
 			try (Connection conn = DBConnection.getConnection();
@@ -133,9 +147,73 @@ public class StudentPanel {
 	             JOptionPane.showMessageDialog(panel, "Error loading student data");
 	         }
 
-		panel.add(scrollPane, BorderLayout.CENTER);
-		panel.add(formPanel, BorderLayout.SOUTH);
-		return panel;
-	}
+		
+	
 
+	
+	table.addMouseListener(new MouseAdapter() {
+	    @Override
+	    public void mouseClicked(MouseEvent e) {
+	        int row = table.getSelectedRow();
+	        if (row >= 0) {
+	            nameField.setText(model.getValueAt(row, 1).toString());
+	            emailField.setText(model.getValueAt(row, 2).toString());
+	            deptIdField.setText(model.getValueAt(row, 3).toString());
+
+	            //Enable Access button when a row is selected
+	            accessBtn.setEnabled(true);
+	        }
+	    }
+	});
+	////////////
+	accessBtn.addActionListener(e -> {
+        JPanel accessPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+
+        JLabel userLabel = new JLabel("Username:");
+        JTextField userField = new JTextField();
+
+        JLabel passLabel = new JLabel("Password:");
+        JTextField passField = new JTextField();
+
+        JButton submitBtn = new JButton("Submit");
+        JButton cancelBtn = new JButton("Cancel");
+
+        accessPanel.add(userLabel);
+        accessPanel.add(userField);
+        accessPanel.add(passLabel);
+        accessPanel.add(passField);
+        accessPanel.add(submitBtn);
+        accessPanel.add(cancelBtn);
+
+        javax.swing.JDialog dialog = new javax.swing.JDialog();
+        dialog.setTitle("Access Credentials");
+        dialog.setModal(true);
+        dialog.getContentPane().add(accessPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+
+        submitBtn.addActionListener(submitEvent -> {
+            String username = userField.getText().trim();
+            String password = passField.getText().trim();
+
+            if (username.equals("admin") && password.equals("1234")) {
+                JOptionPane.showMessageDialog(dialog, "Login Successful!");
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Login Failed. Try Again.");
+            }
+        });
+
+        cancelBtn.addActionListener(cancelEvent -> dialog.dispose());
+
+        dialog.setVisible(true);
+    });
+	////////////
+	
+	formPanel.add(buttonPanel);
+	panel.add(scrollPane, BorderLayout.CENTER);
+	panel.add(formPanel, BorderLayout.SOUTH);
+	
+	return panel;
+}
 }
