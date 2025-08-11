@@ -12,13 +12,12 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-
-
-
+ 
 public class StudentPanel {
 
 	public  static JPanel createStudentPanel() {
@@ -167,47 +166,113 @@ public class StudentPanel {
 	});
 	////////////
 	accessBtn.addActionListener(e -> {
-        JPanel accessPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+	    int row = table.getSelectedRow();
+	    if (row < 0) {
+	        JOptionPane.showMessageDialog(panel, "Select a student first.");
+	        return;
+	    }
+	    int studentId = Integer.parseInt(model.getValueAt(row, 0).toString());
 
-        JLabel userLabel = new JLabel("Username:");
-        JTextField userField = new JTextField();
+	    // Check if student already has a linked user
+	    Integer existingUserId = null;
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement("SELECT user_id FROM students WHERE id = ?")) {
+	        ps.setInt(1, studentId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                int uid = rs.getInt("user_id");
+	                if (!rs.wasNull()) existingUserId = uid;
+	            }
+	        }
+	    } catch (SQLException ex) {
+	        ex.printStackTrace();
+	        JOptionPane.showMessageDialog(panel, "Error checking existing access.");
+	        return;
+	    }
 
-        JLabel passLabel = new JLabel("Password:");
-        JTextField passField = new JTextField();
+	    if (existingUserId != null) {
+	        int choice = JOptionPane.showConfirmDialog(
+	                panel,
+	                "This student already has access (user_id=" + existingUserId + ").\nDo you want to replace it?",
+	                "Access Already Exists",
+	                JOptionPane.YES_NO_OPTION
+	        );
+	        if (choice != JOptionPane.YES_OPTION) return;
+	    }
 
-        JButton submitBtn = new JButton("Submit");
-        JButton cancelBtn = new JButton("Cancel");
+	
+	    JPanel accessPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+	    JTextField userField = new JTextField();
+	    JPasswordField passField = new JPasswordField();
+	    accessPanel.add(new JLabel("Username:"));
+	    accessPanel.add(userField);
+	    accessPanel.add(new JLabel("Password:"));
+	    accessPanel.add(passField);
 
-        accessPanel.add(userLabel);
-        accessPanel.add(userField);
-        accessPanel.add(passLabel);
-        accessPanel.add(passField);
-        accessPanel.add(submitBtn);
-        accessPanel.add(cancelBtn);
+	    int result = JOptionPane.showConfirmDialog(
+	            panel, accessPanel, "Create Login for Student",
+	            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+	    );
+	    if (result != JOptionPane.OK_OPTION) return;
 
-        javax.swing.JDialog dialog = new javax.swing.JDialog();
-        dialog.setTitle("Access Credentials");
-        dialog.setModal(true);
-        dialog.getContentPane().add(accessPanel);
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
+	    String usernameIn = userField.getText().trim();
+	    String passwordIn = new String(passField.getPassword());
 
-        submitBtn.addActionListener(submitEvent -> {
-            String username = userField.getText().trim();
-            String password = passField.getText().trim();
+	    if (usernameIn.isEmpty() || passwordIn.isEmpty()) {
+	        JOptionPane.showMessageDialog(panel, "Username and password are required.");
+	        return;
+	    }
 
-            if (username.equals("admin") && password.equals("1234")) {
-                JOptionPane.showMessageDialog(dialog, "Login Successful!");
-                dialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(dialog, "Login Failed. Try Again.");
-            }
-        });
+	    try (Connection conn = DBConnection.getConnection()) {
+	        conn.setAutoCommit(false);
+	        try {
+	           
+	            try (PreparedStatement chk = conn.prepareStatement("SELECT id FROM users WHERE username = ?")) {
+	                chk.setString(1, usernameIn);
+	                try (ResultSet rs = chk.executeQuery()) {
+	                    if (rs.next()) {
+	                        throw new SQLException("Username already exists. Pick another.");
+	                    }
+	                }
+	            }
 
-        cancelBtn.addActionListener(cancelEvent -> dialog.dispose());
+	        
+	            int newUserId;
+	            try (PreparedStatement ins = conn.prepareStatement(
+	                    "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+	                    Statement.RETURN_GENERATED_KEYS)) {
+	                ins.setString(1, usernameIn);
+	                ins.setString(2, passwordIn); 
+	                ins.setString(3, "Student");
+	                ins.executeUpdate();
+	                try (ResultSet rs = ins.getGeneratedKeys()) {
+	                    if (!rs.next()) throw new SQLException("Failed to create user (no key).");
+	                    newUserId = rs.getInt(1);
+	                }
+	            }
 
-        dialog.setVisible(true);
-    });
+	         
+	            try (PreparedStatement upd = conn.prepareStatement(
+	                    "UPDATE students SET user_id = ? WHERE id = ?")) {
+	                upd.setInt(1, newUserId);
+	                upd.setInt(2, studentId);
+	                upd.executeUpdate();
+	            }
+
+	            conn.commit();
+	            JOptionPane.showMessageDialog(panel, "Access created and linked (user_id=" + newUserId + ").");
+	        } catch (SQLException ex) {
+	            conn.rollback();
+	            ex.printStackTrace();
+	            JOptionPane.showMessageDialog(panel, "Error creating or linking user: " + ex.getMessage());
+	        } finally {
+	            conn.setAutoCommit(true);
+	        }
+	    } catch (SQLException ex) {
+	        ex.printStackTrace();
+	        JOptionPane.showMessageDialog(panel, "Database error: " + ex.getMessage());
+	    }
+	});
 	////////////
 	
 	formPanel.add(buttonPanel);
@@ -215,5 +280,5 @@ public class StudentPanel {
 	panel.add(formPanel, BorderLayout.SOUTH);
 	
 	return panel;
-}
+ }
 }
