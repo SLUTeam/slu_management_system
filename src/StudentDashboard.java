@@ -2,15 +2,20 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 //Developed by Abishek Arivudainambi
 
 public class StudentDashboard extends JFrame {
 
-    private JTabbedPane tabbedPane;
+	JTabbedPane tabbedPane = new JTabbedPane();
     private String username;
     private String email;
     private String role;
+	private int studentId;
 
     public StudentDashboard(String username, String email, String role) {
         this.username = username;
@@ -51,11 +56,18 @@ public class StudentDashboard extends JFrame {
         leftPanel.add(profileBtn);
         leftPanel.add(coursesBtn);
         leftPanel.add(logoutBtn);
+        
+        Integer studentId = getStudentIdByUsername(username);
+        if (studentId != null) {
+            tabbedPane.addTab("Register Courses", StudentCoursePanel.createStudentsCoursePanel(studentId));
+        } else {
+            JOptionPane.showMessageDialog(this, "Student not found for username: " + username);
+        }
 
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Home", createHomePanel());
         tabbedPane.addTab("Profile", new JPanel());
-        tabbedPane.addTab("Register Courses", new JPanel());
+        tabbedPane.addTab("Register Courses", StudentCoursePanel.createStudentsCoursePanel(studentId));
 
         homeBtn.addActionListener(e -> tabbedPane.setSelectedIndex(0));
         profileBtn.addActionListener(e -> tabbedPane.setSelectedIndex(1));
@@ -91,6 +103,23 @@ public class StudentDashboard extends JFrame {
         return panel;
     }
 
+    public static Integer getStudentIdByUsername(String username) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                 "SELECT id FROM students WHERE user_id = (SELECT id FROM users WHERE username = ? LIMIT 1) LIMIT 1")) {
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        return null;
+    }
+    
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new StudentDashboard("student", "student@slu.edu", "Student").setVisible(true));
     }
