@@ -101,7 +101,7 @@ public class LoginPage extends JFrame {
                 if (rs.next()) {
                     String email = rs.getString("email");
                     JOptionPane.showMessageDialog(null, "Login Successful!");
-                  //  EmailUtil.sendEmail(email, user);
+                 //  EmailUtil.sendEmail(email, user);
 
                     if (type.equals("Admin")) {
                         new AdminDashboard(user, email, type).setVisible(true);
