@@ -103,7 +103,7 @@ public class LoginPage extends JFrame {
                     JOptionPane.showMessageDialog(null, "Login Successful!");
                     String subject = "Login Notification";
                     String messgae = "Hello " + user + ",\n\nYou have successfully logged in to the SLU Management System.";
-                 //  EmailUtil.sendEmail(email, user ,messgae,subject);
+                    EmailUtil.sendEmail(email, user ,messgae,subject);
 
                     if (type.equals("Admin")) {
                         new AdminDashboard(user, email, type).setVisible(true);
