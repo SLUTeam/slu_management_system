@@ -77,6 +77,8 @@ role : Admin
 
 One final thing I also created one run.sh file for terminal its a shell script I (Abishek) got this Idea from my senior
 
+one issue in final Unfortunately jyoti got error while push ProfessorStudentPanel at last time So I just got all the code from her and I psuh from my laptop and I mentioned this in commit message aswell.
+
 
 
 
