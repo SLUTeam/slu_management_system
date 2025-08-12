@@ -2,7 +2,10 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 //Developed by Abishek Arivudainambi 
 
 public class ProfessorDashboard extends JFrame {
@@ -13,6 +16,7 @@ public class ProfessorDashboard extends JFrame {
     private String role;
 
     public ProfessorDashboard(String username, String email, String role) {
+    	
         this.username = username;
         this.email = email;
         this.role = role;
@@ -54,8 +58,14 @@ public class ProfessorDashboard extends JFrame {
 
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Home", createHomePanel());
-        tabbedPane.addTab("My Students", new JPanel());
-        tabbedPane.addTab("Assignments", new JPanel());
+        Integer professorId = getProfessorIdByUsername(username);
+        if (professorId != null) {
+            tabbedPane.addTab("My Students", ProfessorStudentsPanel.createProfessorStudentsPanel(professorId));
+        } else {
+            tabbedPane.addTab("My Students", new JPanel());
+            JOptionPane.showMessageDialog(this, "Professor not found for email: " + email);
+        }
+        tabbedPane.addTab("Assignments", ProfessorAssignmentPanel.createProfessorAssignmentPanel(professorId));
 
         homeBtn.addActionListener(e -> tabbedPane.setSelectedIndex(0));
         studentsBtn.addActionListener(e -> tabbedPane.setSelectedIndex(1));
@@ -89,6 +99,20 @@ public class ProfessorDashboard extends JFrame {
         panel.add(roleLabel);
 
         return panel;
+    }
+    
+    private static Integer getProfessorIdByUsername(String username) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT id FROM professors WHERE user_id = (SELECT id FROM users WHERE username = ? LIMIT 1) LIMIT 1")) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     public static void main(String[] args) {
