@@ -180,7 +180,6 @@ public class StudentPanel {
 					}
 				}
 
-				// NEW: enable Access when a row is selected
 				accessBtn.setEnabled(true);
 			}
 		});
