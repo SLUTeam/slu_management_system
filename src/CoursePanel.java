@@ -67,7 +67,6 @@ public class CoursePanel {
 			JOptionPane.showMessageDialog(panel, "Error loading professors.");
 		}
 
-		// Load departments
 		try (Connection conn = DBConnection.getConnection();
 				Statement s = conn.createStatement();
 				ResultSet rs = s.executeQuery("SELECT dept_id, dept_name FROM departments ORDER BY dept_name")) {
@@ -96,42 +95,92 @@ public class CoursePanel {
 		buttons.add(updateBtn);
 		buttons.add(deleteBtn);
 
-		// ADD
 		addBtn.addActionListener(e -> {
 			ProfItem p = (ProfItem) profCombo.getSelectedItem();
 			DeptItem d = (DeptItem) deptCombo.getSelectedItem();
-			if (p == null || d == null) {
-				JOptionPane.showMessageDialog(panel, "Select professor and department.");
+			String cname = courseName.getText().trim();
+
+			if (p == null || d == null || cname.isEmpty()) {
+				JOptionPane.showMessageDialog(panel, "Enter course name and select professor & department.");
 				return;
 			}
 
-			try (Connection conn = DBConnection.getConnection();
-					PreparedStatement ps = conn.prepareStatement(
+			try (Connection conn = DBConnection.getConnection()) {
+				conn.setAutoCommit(false);
+				try {
+				
+					Integer existingCourseId = null;
+					try (PreparedStatement chk = conn
+							.prepareStatement("SELECT course_id FROM professors WHERE id = ?")) {
+						chk.setInt(1, p.id);
+						try (ResultSet rs = chk.executeQuery()) {
+							if (rs.next()) {
+								int cid = rs.getInt("course_id");
+								if (!rs.wasNull())
+									existingCourseId = cid;
+							}
+						}
+					}
+
+					if (existingCourseId != null) {
+						int choice = JOptionPane.showConfirmDialog(panel,
+								"Selected professor already has a course (course_id=" + existingCourseId + ").\n"
+										+ "Do you want to replace it with the new course?",
+								"Professor Already Assigned", JOptionPane.YES_NO_OPTION);
+						if (choice != JOptionPane.YES_OPTION) {
+							conn.rollback();
+							return;
+						}
+					}
+
+				
+					int newCourseId;
+					try (PreparedStatement ps = conn.prepareStatement(
 							"INSERT INTO courses (course_name, professor_id, dept_id) VALUES (?, ?, ?)",
 							Statement.RETURN_GENERATED_KEYS)) {
-				ps.setString(1, courseName.getText().trim());
-				ps.setInt(2, p.id);
-				ps.setInt(3, d.id);
-				ps.executeUpdate();
+						ps.setString(1, cname);
+						ps.setInt(2, p.id);
+						ps.setInt(3, d.id);
+						ps.executeUpdate();
 
-				try (ResultSet rs = ps.getGeneratedKeys()) {
-					if (rs.next()) {
-						int id = rs.getInt(1);
-						model.addRow(new Object[] { id, courseName.getText().trim(), p.name, d.name });
+						try (ResultSet rs = ps.getGeneratedKeys()) {
+							if (!rs.next())
+								throw new SQLException("Failed to create course (no key).");
+							newCourseId = rs.getInt(1);
+						}
 					}
+
+					
+					try (PreparedStatement upd = conn
+							.prepareStatement("UPDATE professors SET course_id = ? WHERE id = ?")) {
+						upd.setInt(1, newCourseId);
+						upd.setInt(2, p.id);
+						upd.executeUpdate();
+					}
+
+					conn.commit();
+
+					
+					model.addRow(new Object[] { newCourseId, cname, p.name, d.name });
+					courseName.setText("");
+					if (profCombo.getItemCount() > 0)
+						profCombo.setSelectedIndex(0);
+					if (deptCombo.getItemCount() > 0)
+						deptCombo.setSelectedIndex(0);
+
+				} catch (SQLException ex) {
+					conn.rollback();
+					ex.printStackTrace();
+					JOptionPane.showMessageDialog(panel, "Error adding course / linking professor: " + ex.getMessage());
+				} finally {
+					conn.setAutoCommit(true);
 				}
-				courseName.setText("");
-				if (profCombo.getItemCount() > 0)
-					profCombo.setSelectedIndex(0);
-				if (deptCombo.getItemCount() > 0)
-					deptCombo.setSelectedIndex(0);
 			} catch (SQLException ex) {
 				ex.printStackTrace();
-				JOptionPane.showMessageDialog(panel, "Error adding course.");
+				JOptionPane.showMessageDialog(panel, "Database error: " + ex.getMessage());
 			}
 		});
 
-		// UPDATE
 		updateBtn.addActionListener(e -> {
 			int row = table.getSelectedRow();
 			if (row < 0) {
@@ -164,7 +213,6 @@ public class CoursePanel {
 			}
 		});
 
-		// DELETE
 		deleteBtn.addActionListener(e -> {
 			int row = table.getSelectedRow();
 			if (row < 0) {
@@ -183,7 +231,6 @@ public class CoursePanel {
 			}
 		});
 
-		// TABLE -> FORM (simple: requery IDs for this row)
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -211,7 +258,6 @@ public class CoursePanel {
 			}
 		});
 
-		// INITIAL LOAD (names via JOIN)
 		try (Connection conn = DBConnection.getConnection();
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(
